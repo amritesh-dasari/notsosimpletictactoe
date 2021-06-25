@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:notsosimpletictactoe/GameButton.dart';
 import 'package:notsosimpletictactoe/custom_dialog.dart';
@@ -14,6 +15,7 @@ class _HomePageState extends State<HomePage> {
   var player1;
   var player2;
   var activeplayer;
+  var board;
 
   @override
   void initState() {
@@ -22,6 +24,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<GameButton> doInit() {
+    board = [
+      ['', '', ''],
+      ['', '', ''],
+      ['', '', '']
+    ];
     player1 = [];
     player2 = [];
     activeplayer = 1;
@@ -43,14 +50,16 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       if (activeplayer == 1) {
         gb.text = "X";
-        gb.bg = Colors.red.shade300;
+        gb.bg = Colors.red.shade500;
         activeplayer = 2;
         player1.add(gb.id);
-      } else {
+        boardupdate(gb.id, 1);
+      } else if (activeplayer == 2) {
         gb.text = "O";
         gb.bg = Colors.black45;
         activeplayer = 1;
         player2.add(gb.id);
+        boardupdate(gb.id, 2);
       }
       gb.enabled = false;
       int winner = checkWinner();
@@ -65,6 +74,148 @@ class _HomePageState extends State<HomePage> {
         }
       }
     });
+  }
+
+  boardupdate(int pos, int player) {
+    if (player == 1) {
+      if (pos >= 1 && pos <= 3) {
+        board[0][pos - 1] = 'X';
+      } else if (pos >= 4 && pos <= 6) {
+        board[1][pos - 4] = 'X';
+      } else if (pos >= 7 && pos <= 9) {
+        board[2][pos - 7] = 'X';
+      }
+    } else if (player == 2) {
+      if (pos >= 1 && pos <= 3) {
+        board[0][pos - 1] = 'O';
+      } else if (pos >= 4 && pos <= 6) {
+        board[1][pos - 4] = 'O';
+      } else if (pos >= 7 && pos <= 9) {
+        board[2][pos - 7] = 'O';
+      }
+    }
+    print(board);
+  }
+
+  void autoPlay() {
+    var bestval = -1000;
+    var bestMove = [-1, -1];
+    for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 3; j++) {
+        if (board[i][j] == '') {
+          board[i][j] = 'O';
+          var moveVal = minimax(0, false);
+          board[i][j] = '';
+          if (moveVal > bestval) {
+            bestMove = [i, j];
+            bestval = moveVal;
+          }
+        }
+      }
+    }
+    if (bestMove[0] == 0 && bestMove[1] == 0) {
+      board[0][0] = 'O';
+      playGame(buttonsList[0]);
+    } else if (bestMove[0] == 0 && bestMove[1] == 1) {
+      board[0][1] = 'O';
+      playGame(buttonsList[1]);
+    } else if (bestMove[0] == 0 && bestMove[1] == 2) {
+      board[0][2] = 'O';
+      playGame(buttonsList[2]);
+    } else if (bestMove[0] == 1 && bestMove[1] == 0) {
+      board[1][0] = 'O';
+      playGame(buttonsList[3]);
+    } else if (bestMove[0] == 1 && bestMove[1] == 1) {
+      board[1][1] = 'O';
+      playGame(buttonsList[4]);
+    } else if (bestMove[0] == 1 && bestMove[1] == 2) {
+      board[1][2] = 'O';
+      playGame(buttonsList[5]);
+    } else if (bestMove[0] == 2 && bestMove[1] == 0) {
+      board[2][0] = 'O';
+      playGame(buttonsList[6]);
+    } else if (bestMove[0] == 2 && bestMove[1] == 1) {
+      board[2][1] = 'O';
+      playGame(buttonsList[7]);
+    } else if (bestMove[0] == 2 && bestMove[1] == 2) {
+      board[2][2] = 'O';
+      playGame(buttonsList[8]);
+    }
+  }
+
+  int minimax(int depth, bool isMax) {
+    int score = evaluateBoard();
+    if (score == 10) {
+      return score;
+    }
+    if (score == -10) {
+      return score;
+    }
+    if (isMax) {
+      var best = -1000;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (board[i][j] == '') {
+            board[i][j] = 'O';
+            best = max(best, minimax(depth + 1, !isMax));
+            board[i][j] = '';
+          }
+        }
+      }
+      return best;
+    } else {
+      var best = 1000;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (board[i][j] == '') {
+            board[i][j] = 'X';
+            best = min(best, minimax(depth + 1, !isMax));
+            board[i][j] = '';
+          }
+        }
+      }
+      return best;
+    }
+  }
+
+  int evaluateBoard() {
+    for (int i = 0; i < 3; i++) {
+      if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+        if (board[i][0] == 'O') {
+          return 10;
+        } else if (board[i][0] == 'X') {
+          return -10;
+        }
+      }
+    }
+
+    for (int i = 0; i < 3; i++) {
+      if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
+        if (board[0][i] == 'O') {
+          return 10;
+        } else if (board[0][1] == 'X') {
+          return -10;
+        }
+      }
+    }
+
+    if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+      if (board[0][0] == 'O') {
+        return 10;
+      } else if (board[0][0] == 'X') {
+        return -10;
+      }
+    }
+
+    if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+      if (board[0][2] == 'O') {
+        return 10;
+      } else if (board[0][2] == 'X') {
+        return -10;
+      }
+    }
+
+    return 0;
   }
 
   int checkWinner() {
