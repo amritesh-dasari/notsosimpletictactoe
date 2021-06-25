@@ -25,9 +25,9 @@ class _HomePageState extends State<HomePage> {
 
   List<GameButton> doInit() {
     board = [
-      ['', '', ''],
-      ['', '', ''],
-      ['', '', '']
+      ['_', '_', '_'],
+      ['_', '_', '_'],
+      ['_', '_', '_']
     ];
     player1 = [];
     player2 = [];
@@ -102,10 +102,10 @@ class _HomePageState extends State<HomePage> {
     var bestMove = [-1, -1];
     for (var i = 0; i < 3; i++) {
       for (var j = 0; j < 3; j++) {
-        if (board[i][j] == '') {
+        if (board[i][j] == '_') {
           board[i][j] = 'O';
           var moveVal = minimax(0, false);
-          board[i][j] = '';
+          board[i][j] = '_';
           if (moveVal > bestval) {
             bestMove = [i, j];
             bestval = moveVal;
@@ -144,21 +144,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   int minimax(int depth, bool isMax) {
-    int score = evaluateBoard();
+    int score = evaluateBoard(depth, board);
     if (score == 10) {
       return score;
     }
     if (score == -10) {
       return score;
     }
+    if (isMoveLeft() == false) {
+      return 0;
+    }
     if (isMax) {
       var best = -1000;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          if (board[i][j] == '') {
+          if (board[i][j] == '_') {
             board[i][j] = 'O';
             best = max(best, minimax(depth + 1, !isMax));
-            board[i][j] = '';
+            board[i][j] = '_';
           }
         }
       }
@@ -167,10 +170,10 @@ class _HomePageState extends State<HomePage> {
       var best = 1000;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          if (board[i][j] == '') {
+          if (board[i][j] == '_') {
             board[i][j] = 'X';
             best = min(best, minimax(depth + 1, !isMax));
-            board[i][j] = '';
+            board[i][j] = '_';
           }
         }
       }
@@ -178,9 +181,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  int evaluateBoard() {
+  isMoveLeft() {
     for (int i = 0; i < 3; i++) {
-      if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+      for (int j = 0; j < 3; j++) {
+        if (board[i][j] == '_') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  int evaluateBoard(int depth, var board) {
+    for (int i = 0; i < 3; i++) {
+      if ((board[i][0] == board[i][1]) && (board[i][1] == board[i][2])) {
         if (board[i][0] == 'O') {
           return 10;
         } else if (board[i][0] == 'X') {
@@ -190,7 +204,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     for (int i = 0; i < 3; i++) {
-      if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
+      if ((board[0][i] == board[1][i]) && (board[1][i] == board[2][i])) {
         if (board[0][i] == 'O') {
           return 10;
         } else if (board[0][1] == 'X') {
@@ -199,7 +213,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+    if ((board[0][0] == board[1][1]) && (board[1][1] == board[2][2])) {
       if (board[0][0] == 'O') {
         return 10;
       } else if (board[0][0] == 'X') {
@@ -207,7 +221,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+    if ((board[0][2] == board[1][1]) && (board[1][1] == board[2][0])) {
       if (board[0][2] == 'O') {
         return 10;
       } else if (board[0][2] == 'X') {
